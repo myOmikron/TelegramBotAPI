@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setuptools.setup(
     name="telegram_bot_sdk-myOmikron",
-    version="0.1",
+    version="0.1.1",
     author="myOmikron",
     author_email="kontakt@omikron.pw",
     description="A Implementation of the Telegram Bot API",
