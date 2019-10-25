@@ -30,7 +30,7 @@ class TelegramBot:
         return [Update(**x) for x in response]
 
     def get_me(self) -> User:
-        response = await self.my_network.make_request(verb=HttpVerbs.POST, call="getMe")
+        response = self.my_network.make_request(verb=HttpVerbs.POST, call="getMe")
         return User(**response)
 
     def get_user_profile_photos(self, *, user_id, offset=None, limit=None) -> UserProfilePhotos:
@@ -538,7 +538,7 @@ class TelegramBotAsync:
 
 async def worker():
     t = TelegramBotAsync()
-    await t.send_chat_action(chat_id=544807814, action="")
+    await asyncio.create_task(fetch_messages(t))
 
 
 async def do_things(telebot, update):
@@ -552,7 +552,7 @@ async def do_things(telebot, update):
 async def fetch_messages(telebot):
     offset = None
     while True:
-        update = await telebot.get_updates(offset=offset)
+        update = await telebot.get_updates()
         for item in update:
             print(item.__dict__)
             if item.inline_query:
