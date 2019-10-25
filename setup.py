@@ -4,8 +4,8 @@ with open("README.md") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="telegram_bot_sdk-myOmikron",
-    version="0.1.1",
+    name="telegram-bot-sdk",
+    version="0.3.4",
     author="myOmikron",
     author_email="kontakt@omikron.pw",
     description="A Implementation of the Telegram Bot API",
@@ -20,13 +20,9 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
+        "setuptools",
+        "wheel",
         "httpx",
-        "jsonpickle",
-        "enum",
-        "asyncio",
-        "typing",
-        "json",
-        "aioitertools"
-
+        "jsonpickle"
     ]
 )

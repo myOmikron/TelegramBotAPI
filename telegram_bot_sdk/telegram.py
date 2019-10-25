@@ -20,8 +20,8 @@ import asyncio
 
 
 class TelegramBot:
-    def __init__(self):
-        self.config = load_config()
+    def __init__(self, bot_token):
+        self.config = {"URL": "https://api.telegram.org/bot" + bot_token + "/"}
         self.my_network = network.NetworkInternalAsync(self.config)
 
     def get_updates(self, *, offset=None, limit=None, timeout=None, allowed_updates=None) -> list:
@@ -278,8 +278,8 @@ class TelegramBot:
 
 
 class TelegramBotAsync:
-    def __init__(self):
-        self.config = load_config()
+    def __init__(self, bot_token):
+        self.config = {"URL": "https://api.telegram.org/bot" + bot_token + "/"}
         self.my_network = network.NetworkAsync(self.config)
 
     async def get_updates(self, *, offset=None, limit=None, timeout=None, allowed_updates=None) -> list:
