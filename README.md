@@ -1,2 +1,2 @@
 # TelegramBotAPI
-Another TelegramBotAPI writtin in Python3.7
+This is another Telegram Bot API written in Python 3.7
