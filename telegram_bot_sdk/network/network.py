@@ -34,7 +34,6 @@ class NetworkAsync(Network):
         if verb == HttpVerbs.POST:
             response = await self.async_client.post(self.config.vars["URL"] + call, params=params, data=data)
 
-        print(response.text)
         return controller.control_response_level_network(response)
 
 
@@ -51,5 +50,4 @@ class NetworkInternalAsync(Network):
         if verb == HttpVerbs.POST:
             response = self.client.post(self.config.vars["URL"] + call, params=params, data=data)
 
-        print(response.text)
         return controller.control_response_level_network(response)
