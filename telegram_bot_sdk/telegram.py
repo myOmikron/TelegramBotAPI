@@ -1262,13 +1262,8 @@ class TelegramBotAsync:
         return Message(**response)
 
 
-def test():
-    tb = TelegramBot("920999886:AAGOV5igDFDLDTPSPyaVGLHv8xFSWFJToXw")
-    tb.send_message(chat_id=544807814, text="BliBlaBlub")
-
-
 def main():
-    test()
+    pass
 
 
 if __name__ == '__main__':
