@@ -1,5 +1,5 @@
 venv
 .idea
 dist
-.pyc
+*.pyc
 build
