@@ -1,3 +1,4 @@
+import requests
 import httpx
 import enum
 
@@ -16,15 +17,10 @@ class HttpVerbs(enum.Enum):
     TRACE = 9
 
 
-class Network:
-    def make_request(self, *, verb, call, params=None, data=None):
-        pass
-
-
-class NetworkAsync(Network):
+class NetworkAsync:
     def __init__(self, my_config):
         self.config = my_config
-        self.async_client = httpx.AsyncClient()
+        self.async_client = httpx.Client()
 
     async def make_request(self, *, verb, call, params=None, data=None):
         response = None
@@ -37,17 +33,17 @@ class NetworkAsync(Network):
         return controller.control_response_level_network(response)
 
 
-class NetworkInternalAsync(Network):
+class Network:
     def __init__(self, my_config):
         self.config = my_config
-        self.client = httpx.Client()
+        self.session = requests.Session()
 
-    def make_request(self, *, verb, call, params=None, data=None):
+    def make_request(self, *, verb, call, params=None, data=None, files=None, timeout=None):
         response = None
 
         if verb == HttpVerbs.GET:
-            response = self.client.get(self.config.vars["URL"] + call, params=params)
+            response = self.session.get(self.config.vars["URL"] + call, params=params, timeout=timeout)
         if verb == HttpVerbs.POST:
-            response = self.client.post(self.config.vars["URL"] + call, params=params, data=data)
+            response = self.session.post(self.config.vars["URL"] + call, params=params, data=data, files=files, timeout=timeout)
 
         return controller.control_response_level_network(response)

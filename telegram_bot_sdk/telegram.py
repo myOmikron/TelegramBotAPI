@@ -1,5 +1,7 @@
 from typing import Union
 
+from httpx import ConnectTimeout
+
 from telegram_bot_sdk.config import Config
 from telegram_bot_sdk.helper.util import check_locals
 from telegram_bot_sdk.network import network
@@ -7,6 +9,7 @@ from telegram_bot_sdk.network.network import HttpVerbs
 from telegram_bot_sdk.telegram_objects.chat import Chat
 from telegram_bot_sdk.telegram_objects.chatMember import ChatMember
 from telegram_bot_sdk.telegram_objects.file import File
+from telegram_bot_sdk.telegram_objects.inputFile import InputFile
 from telegram_bot_sdk.telegram_objects.message import Message
 from telegram_bot_sdk.telegram_objects.poll import Poll
 from telegram_bot_sdk.telegram_objects.stickerSet import StickerSet
@@ -21,10 +24,39 @@ class TelegramBot:
     :param bot_token: Insert here the bot token received by the Botfather
     :type bot_token: String
     """
+
     def __init__(self, bot_token):
         self.config = Config()
         self.config.vars = {"URL": "https://api.telegram.org/bot" + bot_token + "/"}
-        self.my_network = network.NetworkInternalAsync(self.config)
+        self.my_network = network.Network(self.config)
+        self.check_for_updates = False
+
+    def set_callback_method(self, method):
+        """This method is used to define the callback method to handle incoming updates
+
+        :param method: Method to call
+        :type method: method
+        """
+        self.check_for_updates = True
+        self._check_for_updates(method)
+
+    def _check_for_updates(self, method):
+        """This method is used internally to check for updates
+
+        :param method: Method to call
+        :type method: method
+        """
+        data_dict = {"offset": 0,
+                     "timeout": ""}
+        while self.check_for_updates:
+            try:
+                update_list = self.my_network.make_request(verb=HttpVerbs.POST, call="getUpdates", data=data_dict)
+                for update in update_list:
+                    update = Update(**update)
+                    data_dict["offset"] = update.update_id + 1
+                    method(update)
+            except ConnectTimeout:
+                continue
 
     def get_updates(self, *, offset=None, limit=None, timeout=None, allowed_updates=None) -> list:
         """Call this method to receive Messages
@@ -98,7 +130,7 @@ class TelegramBot:
         :rtype: :ref:`object_message`
         """
         data_dict = check_locals(**locals())
-        response = self.my_network.make_request(verb=HttpVerbs.GET, call="sendMessage", data=data_dict)
+        response = self.my_network.make_request(verb=HttpVerbs.GET, call="sendMessage", params=data_dict)
         return Message(**response)
 
     def send_location(self, *, chat_id, latitude, longitude, live_period=None, disable_notification=None,
@@ -163,6 +195,40 @@ class TelegramBot:
         """
         data_dict = check_locals(**locals())
         response = self.my_network.make_request(verb=HttpVerbs.POST, call="sendVenue", data=data_dict)
+        return Message(**response)
+
+    def send_audio(self, *, chat_id, audio, caption=None, parse_mode=None, duration=None, disable_notification=None,
+                   reply_to_message_id=None, reply_markup=None) -> Message:
+        """This method is used to send audio messages
+
+        :param chat_id: Unique identifier for the target chat or username of the target channel (format \
+        @channelusername)
+        :type chat_id: int or str
+        :param audio: Audio file to send, path to the file
+        :type audio: :ref:`object_input_file`: or str
+        :param caption: Voice message caption, 0-1024 characters
+        :type caption: str
+        :param parse_mode: Send *Markdown* or *HTML*, if you want Telegram apps to show bold, italic, fixed-width, \
+        text or inline URLs in the media caption
+        :type parse_mode: str
+        :param duration: Duration of the voice message in seconds
+        :type duration: int
+        :param disable_notification: Sends the message silently. Users will receive a notification with no sound
+        :type disable_notification: bool
+        :param reply_to_message_id: If the message is a reply, ID of the original message
+        :type reply_to_message_id: int
+        :param reply_markup: Additional interface options
+        :type reply_markup: :ref:`object_inline_keyboard_markup` or `object_reply_keyboard_markup` or \
+        :ref:`object_reply_keyboard_remove` or :ref:`object_force_reply`
+
+        :return: On success the sent message is returned
+        :rtype: :ref:`object_message`
+        """
+        data_dict = check_locals(**locals())
+        files = {}
+        del data_dict["audio"]
+        files["audio"] = (audio.file_name, audio.file_data, audio.mime_type)
+        response = self.my_network.make_request(verb=HttpVerbs.POST, call="sendAudio", data=data_dict, files=audio)
         return Message(**response)
 
     def send_contact(self, *, chat_id, phone_number, first_name, last_name=None, vcard=None,
@@ -1001,6 +1067,7 @@ class TelegramBotAsync:
     :param bot_token: Insert here the bot token received by the Botfather
     :type bot_token: String
     """
+
     def __init__(self, bot_token):
         self.config = Config()
         self.config.vars = {"URL": "https://api.telegram.org/bot" + bot_token + "/"}
@@ -1023,7 +1090,7 @@ class TelegramBotAsync:
     async def send_message(self, *, chat_id, text, parse_mode=None, disable_web_page_preview=None,
                            disable_notification=None, reply_to_message_id=None, reply_markup=None) -> Message:
         data_dict = check_locals(**locals())
-        response = await self.my_network.make_request(verb=HttpVerbs.GET, call="sendMessage", data=data_dict)
+        response = await self.my_network.make_request(verb=HttpVerbs.GET, call="sendMessage", params=data_dict)
         return Message(**response)
 
     async def send_location(self, *, chat_id, latitude, longitude, live_period=None, disable_notification=None,
@@ -1262,8 +1329,18 @@ class TelegramBotAsync:
         return Message(**response)
 
 
+class TestBot:
+    def __init__(self):
+        self.telebot = TelegramBot("951769475:AAFjUgldVr-phYMp_0chJ57CNAs-Deg53zw")
+        self.telebot.set_callback_method(self.on_update)
+
+    def on_update(self, update):
+        self.telebot.send_audio(chat_id=update.message.chat.id_unique,
+                                audio=InputFile("/home/omikron/Dokumente/Python/WololoBot/taunt/01.mp3"))
+
+
 def main():
-    pass
+    TestBot()
 
 
 if __name__ == '__main__':
